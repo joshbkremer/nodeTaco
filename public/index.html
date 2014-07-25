@@ -44,15 +44,62 @@
         }
       }
 
+
+
+      $(document).ready(function(){
+        $.ajax({
+          type: 'GET',
+          url: 'userScore',
+          success: handleUserScore
+        });
+
+        function handleUserScore(res){
+          clicks = res.score;
+          document.getElementById("clicks").innerHTML = clicks;
+        }
+
+        leader();
+      });
+
+      function leader(){
+        $.ajax({
+          type: 'GET',
+          url: '/leaderboard',
+          success: handleLeaderboard
+        });
+
+        function handleLeaderboard(res){
+          var blah = '';
+        }
+      }
     </script>
-    <div style="width:100%; text-align: center; margin-top: 100px;">
-      <button type="button" onClick="onClick()" style="background: transparent; border: none !important; font-size: 0; border: none; outline: none;"> 
-        <img class="tacoImage" src="taco.png">
-      </button>
-      <div style="margin-top: 50px">
-        <p style="font-family: 'tacoFont'; color: #FF007E; font-size: 24px;"> Total number of tacos:  
-          <a id="clicks" style="font-family: 'tacoFont'; color: #FFFF01; font-size: 24px;">0</a>
-        </p>
+    <div class="container">
+      <div class="column">
+      </div>
+      <div class="column">
+        <button type="button" onClick="onClick()" style="background: transparent; border: none !important; font-size: 0; border: none; outline: none;">
+          <img class="tacoImage" src="taco.png">
+        </button>
+        <div style="margin-top: 50px">
+          <p style="font-family: 'tacoFont'; color: #FF007E; font-size: 24px;"> Total number of tacos:
+            <a id="clicks" style="font-family: 'tacoFont'; color: #FFFF01; font-size: 24px;">0</a>
+          </p>
+        </div>
+      </div>
+      <div class="column">
+        <h1>Leaderboard</h1>
+        <h2>1. Josh</h2>
+        <h2>2. Josh</h2>
+        <h2>3. Josh</h2>
+        <h2>4. Josh</h2>
+        <h2>5. Josh</h2>
+        <h2>6. Josh</h2>
+        <h2>7. Josh</h2>
+        <h2>8. Josh</h2>
+        <h2>9. Josh</h2>
+        <h2>10. Josh</h2>
+        <button type="button" onClick="leader()">
+        </button>
       </div>
     </div>
   </body>
