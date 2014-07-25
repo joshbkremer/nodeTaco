@@ -69,7 +69,20 @@
         });
 
         function handleLeaderboard(res){
-          var blah = '';
+          var tableBody = "";
+          $.each(res.leaderboard, function() {
+            var tableRow = "";
+            $.each(this, function(k , v) {
+              if(k === 'score')
+                tableRow += "<td>"+v+" tacos </td>";
+              else if(k == 'rank')
+                tableRow += "<td>"+v+". </td>";
+              else
+                tableRow += "<td> "+v+" </td>";
+            })
+            tableBody += "<tr>"+tableRow+"</tr>";
+          })
+          document.getElementById("leaderboard").innerHTML = tableBody;
         }
       }
     </script>
@@ -88,18 +101,8 @@
       </div>
       <div class="column">
         <h1>Leaderboard</h1>
-        <h2>1. Josh</h2>
-        <h2>2. Josh</h2>
-        <h2>3. Josh</h2>
-        <h2>4. Josh</h2>
-        <h2>5. Josh</h2>
-        <h2>6. Josh</h2>
-        <h2>7. Josh</h2>
-        <h2>8. Josh</h2>
-        <h2>9. Josh</h2>
-        <h2>10. Josh</h2>
-        <button type="button" onClick="leader()">
-        </button>
+        <table id="leaderboard">
+        </table>
       </div>
     </div>
   </body>

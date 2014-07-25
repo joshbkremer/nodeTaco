@@ -24,13 +24,18 @@ html, body {
     font-size: 10px;
 }
 
+.column table{
+    margin: 0 auto;
+}
+
 .column h1 {
     text-decoration: underline;
 }
 
-.column h2 {
+.column td {
+    text-align: center;
+    font-size: 16px;
     color: #FFFF01;
-    line-height: 50%;
 }
 
 .column img {

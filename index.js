@@ -28,42 +28,14 @@ mongoClient.open(function(err, mongoClient) { //C
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-//app.get('/:collection', function(req, res) { //A
-//   var params = req.params; //B
-//   collectionDriver.findAll(req.params.collection, function(error, objs) { //C
-//        if (error) { res.send(400, error); } //D
-//        else {
-//            if (req.accepts('html')) { //E
-//                res.render('data',{objects: objs, collection: req.params.collection}); //F
-//              } else {
-//            res.set('Content-Type','application/json'); //G
-//                  res.send(200, objs); //H
-//              }
-//         }
-//    });
-//});
-//
-//app.get('/:collection/:entity', function(req, res) { //I
-//   var params = req.params;
-//   var entity = params.entity;
-//   var collection = params.collection;
-//   if (entity) {
-//       collectionDriver.get(collection, entity, function(error, objs) { //J
-//          if (error) { res.send(400, error); }
-//          else { res.send(200, objs); } //K
-//       });
-//   } else {
-//      res.send(400, {error: 'bad url', url: req.url});
-//   }
-//});
-
 app.get('/leaderboard', function(req, res){
     collectionDriver.findAll('scoreCollection', function(error, objs){
         var jsonArray = [];
         for(var ww=0; ww < objs.length; ww++){
             if(objs[ww].name == null | objs[ww].name == undefined)
                 objs[ww].name = 'anonymous';
-            jsonArray.push({name: objs[ww].name, score: objs[ww].score});
+
+            jsonArray.push({rank: ww+1, name: objs[ww].name, score: objs[ww].score});
         }
 
         res.send(200, {leaderboard: jsonArray});
@@ -99,7 +71,14 @@ app.post('/increment', function(req, res){
         myEntry.score = myEntry.score+1;
         collectionDriver.update(scoreCollection, cookieId, myEntry, function(merror, obj) { //B
             if (merror) { res.send(400, merror); }
-            else { res.send(200, {score: myEntry.score}); } //C
+            else {
+                //get top scores
+                //if(cookieId in table)
+                //if(cookieId != have a name
+                //propmt user for name
+                //else send the updated leaderboard back
+                res.send(200, {score: myEntry.score});
+            } //C
         });
     }
   });
