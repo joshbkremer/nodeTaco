@@ -72,64 +72,56 @@ app.post('/increment', function(req, res){
         collectionDriver.update(scoreCollection, cookieId, myEntry, function(merror, obj) { //B
             if (merror) { res.send(400, merror); }
             else {
-                //get top scores
-                //if(cookieId in table)
-                //if(cookieId != have a name
-                //propmt user for name
-                //else send the updated leaderboard back
-                res.send(200, {score: myEntry.score});
-            } //C
+                collectionDriver.findAll('scoreCollection', function(error, objs){
+                  var jsonArray = [];
+                    if(error){res.send(200, {leaderboard: jsonArray, score: myEntry.score});}
+                    else {
+                      var prompt = false;
+                      for(var ww=0; ww < objs.length; ww++){
+                        if(objs[ww].name == null || objs[ww].name == undefined)
+                          objs[ww].name = 'anonymous';
+
+                        if(objs[ww]._id === cookieId && objs[ww].name === 'anonymous')
+                            prompt = true;
+
+                        jsonArray.push({rank: ww+1, name: objs[ww].name, score: objs[ww].score});
+                      }
+
+                      res.send(200, {leaderboard: jsonArray, score: myEntry.score, prompt: prompt});
+                    }
+                });
+            }
         });
     }
   });
 });
 
-app.post('/:collection', function(req, res) { //A
-    var object = req.body;
-    var collection = req.params.collection;
-    collectionDriver.save(collection, object, function(err,docs) {
-          if (err) { res.send(400, err); }
-          else { res.send(201, docs); } //B
-     });
-});
+app.post('/postName', function(req, res){
+  var cookieId = req.headers.cookie;
+  var scoreCollection = 'scoreCollection';
 
-app.put('/:collection/:entity', function(req, res) { //A
-    var params = req.params;
-    var entity = params.entity;
-    var collection = params.collection;
-    if (entity) {
-       collectionDriver.update(collection, req.body, entity, function(error, objs) { //B
-          if (error) { res.send(400, error); }
-          else { res.send(200, objs); } //C
-       });
-   } else {
-       var error = { "message" : "Cannot PUT a whole collection" };
-       res.send(400, error);
-   }
-});
+  collectionDriver.get(scoreCollection, cookieId, function(error, objs){
+    if(error) {res.send(400, err);}
+    var myEntry = objs;
+    myEntry.name = req.body.name;
+    collectionDriver.update(scoreCollection, cookieId, myEntry, function(merror, obj) { //B
+      if (merror) { res.send(400, merror); }
+      else {
+        collectionDriver.findAll('scoreCollection', function(error, objs){
+          var jsonArray = [];
+          for(var ww=0; ww < objs.length; ww++){
+              if(objs[ww].name == null | objs[ww].name == undefined)
+                  objs[ww].name = 'anonymous';
 
-app.delete('/:collection/:entity', function(req, res) { //A
-    var params = req.params;
-    var entity = params.entity;
-    var collection = params.collection;
-    if (entity) {
-       collectionDriver.delete(collection, entity, function(error, objs) { //B
-          if (error) { res.send(400, error); }
-          else { res.send(200, objs); } //C 200 b/c includes the original doc
-       });
-   } else {
-       var error = { "message" : "Cannot DELETE a whole collection" };
-       res.send(400, error);
-   }
-});
+              jsonArray.push({rank: ww+1, name: objs[ww].name, score: objs[ww].score});
+          }
 
-//app.get('/', function (req, res){
-//  res.send('<html><body><h1>Hello World</h1></body></html>');
-//});
-//
-//app.use(function (req, res){
-//  res.render('404', {url:req.url});
-//});
+          res.send(200, {leaderboard: jsonArray});
+        });
+      }
+    });
+  });
+});
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

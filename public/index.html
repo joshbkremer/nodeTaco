@@ -41,7 +41,55 @@
         function handleSuccess(res){
           clicks = res.score;
           document.getElementById("clicks").innerHTML = clicks;
-        }
+
+          if(res.leaderboard != null && res.leaderboard != undefined){
+            var tableBody = "";
+            $.each(res.leaderboard, function() {
+              var tableRow = "";
+              $.each(this, function(k , v) {
+                if(k === 'score')
+                  tableRow += "<td>"+v+" tacos </td>";
+                else if(k == 'rank')
+                  tableRow += "<td>"+v+". </td>";
+                else
+                  tableRow += "<td> "+v+" </td>";
+              })
+              tableBody += "<tr>"+tableRow+"</tr>";
+            })
+            document.getElementById("leaderboard").innerHTML = tableBody;
+            }
+
+            if(res.prompt != null && res.prompt != undefined && res.prompt === true){
+              var person = prompt("Please enter your name", "");
+              if (person != null) {
+                $.ajax({
+                  type: 'POST',
+                  data: { name: person },
+                  url: '/postName',
+                  success: function(res){
+                    if(res.leaderboard != null && res.leaderboard != undefined){
+                      var tableBody = "";
+                      $.each(res.leaderboard, function() {
+                        var tableRow = "";
+                        $.each(this, function(k , v) {
+                          if(k === 'score')
+                            tableRow += "<td>"+v+" tacos </td>";
+                          else if(k == 'rank')
+                            tableRow += "<td>"+v+". </td>";
+                          else
+                            tableRow += "<td> "+v+" </td>";
+                        })
+                        tableBody += "<tr>"+tableRow+"</tr>";
+                      })
+                      document.getElementById("leaderboard").innerHTML = tableBody;
+                    }
+                  }
+                });
+
+              }
+            }
+          }
+
       }
 
 
