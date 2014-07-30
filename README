@@ -1,0 +1,6 @@
+To deploy to heroku:
+
+uncomment //MongoClient.connect(process.env.MONGOHQ_URL, function(err, db)
+Then do a git push heroku master
+
+To look at mongodb deployed on client go to mongohq.com
