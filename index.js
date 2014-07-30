@@ -12,19 +12,26 @@ app.set('view engine', 'jade');
 
 app.use(express.bodyParser());
 
-var mongoHost = 'localHost'; //A
-var mongoPort = 27017;
 var collectionDriver;
 
-var mongoClient = new MongoClient(process.env.MONGOHQ_URL); //B
-mongoClient.open(function(err, mongoClient) { //C
-  if (!mongoClient) {
+MongoClient.connect(process.env.MONGOHQ_URL, function(err, db){
+  if (err) {
       console.error("Error! Exiting... Must start MongoDB first");
-      process.exit(1); //D
+      process.exit(1);
   }
-  var db = mongoClient.db("tacoDB");  //E
+
   collectionDriver = new CollectionDriver(db); //F
 });
+
+//var mongoClient = new MongoClient(process.env.MONGOHQ_URL); //B
+//mongoClient.open(function(err, mongoClient) { //C
+//  if (!mongoClient) {
+//      console.error("Error! Exiting... Must start MongoDB first");
+//      process.exit(1); //D
+//  }
+//  var db = mongoClient.db("tacoDB");  //E
+//  collectionDriver = new CollectionDriver(db); //F
+//});
 
 app.use(express.static(path.join(__dirname, 'public')));
 
