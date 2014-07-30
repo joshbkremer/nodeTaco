@@ -12,20 +12,8 @@ app.set('view engine', 'jade');
 
 app.use(express.bodyParser());
 
-var mongoHost = 'localHost'; //A
-var mongoPort = 27017; 
-var collectionDriver;
+var collectionDriver = new CollectionDriver(process.env.MONGOHQ_URL); 
  
-var mongoClient = new MongoClient(new Server(mongoHost, mongoPort)); //B
-mongoClient.open(function(err, mongoClient) { //C
-  if (!mongoClient) {
-      console.error("Error! Exiting... Must start MongoDB first");
-      process.exit(1); //D
-  }
-  var db = mongoClient.db("MyDatabase");  //E
-  collectionDriver = new CollectionDriver(db); //F
-});
-
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/leaderboard', function(req, res){
