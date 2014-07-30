@@ -14,24 +14,24 @@ app.use(express.bodyParser());
 
 var collectionDriver;
 
-MongoClient.connect(process.env.MONGOHQ_URL, function(err, db){
-  if (err) {
-      console.error("Error! Exiting... Must start MongoDB first");
-      process.exit(1);
-  }
-
-  collectionDriver = new CollectionDriver(db); //F
-});
-
-//var mongoClient = new MongoClient(process.env.MONGOHQ_URL); //B
-//mongoClient.open(function(err, mongoClient) { //C
-//  if (!mongoClient) {
+//MongoClient.connect(process.env.MONGOHQ_URL, function(err, db){
+//  if (err) {
 //      console.error("Error! Exiting... Must start MongoDB first");
-//      process.exit(1); //D
+//      process.exit(1);
 //  }
-//  var db = mongoClient.db("tacoDB");  //E
+//
 //  collectionDriver = new CollectionDriver(db); //F
 //});
+
+var mongoClient = new MongoClient(new Server('localHost', 27017));
+mongoClient.open(function(err, mongoClient) { //C
+  if (!mongoClient) {
+      console.error("Error! Exiting... Must start MongoDB first");
+      process.exit(1); //D
+  }
+  var db = mongoClient.db("tacoDB");  //E
+  collectionDriver = new CollectionDriver(db); //F
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -66,6 +66,11 @@ app.get('/userScore', function(req, res){
 app.post('/increment', function(req, res){
   var cookieId = req.headers.cookie;
   var scoreCollection = 'scoreCollection';
+
+  var ip = req.headers['x-forwarded-for'] ||
+    req.connection.remoteAddress ||
+    req.socket.remoteAddress ||
+    req.connection.socket.remoteAddress;
 
   collectionDriver.get(scoreCollection, cookieId, function(error, objs){
     if(objs == null || objs.score == null){
