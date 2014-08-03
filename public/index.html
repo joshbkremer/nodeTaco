@@ -60,39 +60,37 @@
             }
 
             if(res.prompt != null && res.prompt != undefined && res.prompt === true){
-              var person = prompt("Please enter your name", "");
-              if (person != null) {
-                $.ajax({
-                  type: 'POST',
-                  data: { name: person },
-                  url: '/postName',
-                  success: function(res){
-                    if(res.leaderboard != null && res.leaderboard != undefined){
-                      var tableBody = "";
-                      $.each(res.leaderboard, function() {
-                        var tableRow = "";
-                        $.each(this, function(k , v) {
-                          if(k === 'score')
-                            tableRow += "<td>"+v+" tacos </td>";
-                          else if(k == 'rank')
-                            tableRow += "<td>"+v+". </td>";
-                          else
-                            tableRow += "<td> "+v+" </td>";
-                        })
-                        tableBody += "<tr>"+tableRow+"</tr>";
-                      })
-                      document.getElementById("leaderboard").innerHTML = tableBody;
-                    }
-                  }
-                });
-
-              }
+//              var person = prompt("Please enter your name", "");
+//              if (person != null) {
+//                $.ajax({
+//                  type: 'POST',
+//                  data: { name: person },
+//                  url: '/postName',
+//                  success: function(res){
+//                    if(res.leaderboard != null && res.leaderboard != undefined){
+//                      var tableBody = "";
+//                      $.each(res.leaderboard, function() {
+//                        var tableRow = "";
+//                        $.each(this, function(k , v) {
+//                          if(k === 'score')
+//                            tableRow += "<td>"+v+" tacos </td>";
+//                          else if(k == 'rank')
+//                            tableRow += "<td>"+v+". </td>";
+//                          else
+//                            tableRow += "<td> "+v+" </td>";
+//                        })
+//                        tableBody += "<tr>"+tableRow+"</tr>";
+//                      })
+//                      document.getElementById("leaderboard").innerHTML = tableBody;
+//                    }
+//                  }
+//                });
+//
+//              }
             }
           }
 
       }
-
-
 
       $(document).ready(function(){
         $.ajax({
@@ -107,6 +105,12 @@
         }
 
         leader();
+
+//        $("#inputDiv").remove();
+        $('#middleColumn').prepend(
+            '<div id="inputDiv"> Enter you name: <input id="inputBox" text="text" size="34"><br/><br/></div>'
+        )
+//        $('.div').add('div');
       });
 
       function leader(){
@@ -137,8 +141,8 @@
     <div class="container">
       <div class="column">
       </div>
-      <div class="column">
-        <button type="button" onClick="onClick()" style="background: transparent; border: none !important; font-size: 0; border: none; outline: none;">
+      <div id="middleColumn" class="column">
+        <button id='tacoButton' type="button" onClick="onClick()">
           <img class="tacoImage" src="taco.png">
         </button>
         <div style="margin-top: 50px">

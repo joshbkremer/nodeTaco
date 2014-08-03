@@ -10,6 +10,49 @@ html, body {
     height: 100%;
 }
 
+#inputDiv {
+  font-family: 'tacoFont';
+  color: #FF007E;
+  font-size: 16px;
+}
+
+#tacoButton {
+  background: transparent;
+  border: none !important;
+  font-size: 0;
+  border: none;
+  outline: none;
+  -moz-outline-style: none;
+}
+
+button::-moz-focus-inner {
+  border:0;
+}
+
+#tacoButton:focus {
+  outline: 0;
+}
+
+#tacoButton:active {
+  outline: none;
+  border: none;
+}
+
+#tacoButton:focus {
+  border: 10px solid black;
+}
+
+#inputBox {
+  font-size: 16px;
+  background-color: #3A167E;
+  border-bottom: 1px solid #008000;
+  border-top: 0px solid #008000;
+  border-right: 0px solid #008000;
+  border-left: 0px solid #008000;
+  color: #FFFF01;
+  font-family: 'tacoFont';
+}
+
 .container {
     width: 100%;
 }
