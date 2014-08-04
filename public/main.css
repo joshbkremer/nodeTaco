@@ -78,5 +78,6 @@ html, body {
   float: left;
   text-align: center;
   font-size: 12px;
-  padding-top: 50px;
+  position: fixed;
+  bottom: 0;
 }
