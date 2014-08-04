@@ -60,33 +60,11 @@
             }
 
             if(res.prompt != null && res.prompt != undefined && res.prompt === true){
-//              var person = prompt("Please enter your name", "");
-//              if (person != null) {
-//                $.ajax({
-//                  type: 'POST',
-//                  data: { name: person },
-//                  url: '/postName',
-//                  success: function(res){
-//                    if(res.leaderboard != null && res.leaderboard != undefined){
-//                      var tableBody = "";
-//                      $.each(res.leaderboard, function() {
-//                        var tableRow = "";
-//                        $.each(this, function(k , v) {
-//                          if(k === 'score')
-//                            tableRow += "<td>"+v+" tacos </td>";
-//                          else if(k == 'rank')
-//                            tableRow += "<td>"+v+". </td>";
-//                          else
-//                            tableRow += "<td> "+v+" </td>";
-//                        })
-//                        tableBody += "<tr>"+tableRow+"</tr>";
-//                      })
-//                      document.getElementById("leaderboard").innerHTML = tableBody;
-//                    }
-//                  }
-//                });
-//
-//              }
+              if(!$('#inputDiv').length){
+                $('#rightColumn').append(
+                    '<div id="inputDiv"> <form action="JavaScript:handleLeaderboard()"><input id="inputBox" text="text" size="14"></form><br/><br/></div>'
+                );
+              }
             }
           }
 
@@ -105,12 +83,6 @@
         }
 
         leader();
-
-//        $("#inputDiv").remove();
-        $('#middleColumn').prepend(
-            '<div id="inputDiv"> Enter you name: <input id="inputBox" text="text" size="34"><br/><br/></div>'
-        )
-//        $('.div').add('div');
       });
 
       function leader(){
@@ -137,7 +109,34 @@
           document.getElementById("leaderboard").innerHTML = tableBody;
         }
       }
+      function handleLeaderboard(){
+        $.ajax({
+          type: 'POST',
+          data: { name: $('input[id=inputBox]').val() },
+          url: '/postName',
+          success: function(res){
+            $("#inputDiv").remove();
+            if(res.leaderboard != null && res.leaderboard != undefined){
+              var tableBody = "";
+              $.each(res.leaderboard, function() {
+                var tableRow = "";
+                $.each(this, function(k , v) {
+                  if(k === 'score')
+                    tableRow += "<td>"+v+" tacos </td>";
+                  else if(k == 'rank')
+                    tableRow += "<td>"+v+". </td>";
+                  else
+                    tableRow += "<td> "+v+" </td>";
+                })
+                tableBody += "<tr>"+tableRow+"</tr>";
+              })
+              document.getElementById("leaderboard").innerHTML = tableBody;
+            }
+          }
+        });
+      }
     </script>
+
     <div class="container">
       <div class="column">
       </div>
@@ -151,11 +150,14 @@
           </p>
         </div>
       </div>
-      <div class="column">
+      <div id="rightColumn" class="column">
         <h1>Leaderboard</h1>
         <table id="leaderboard">
         </table>
       </div>
+    </div>
+    <div id="footer">
+      letstacobell.com is in no way associated with ©2014 Taco Bell Corp.
     </div>
   </body>
 </html>

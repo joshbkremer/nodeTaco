@@ -25,21 +25,8 @@ html, body {
   -moz-outline-style: none;
 }
 
-button::-moz-focus-inner {
+#tacoButton::-moz-focus-inner {
   border:0;
-}
-
-#tacoButton:focus {
-  outline: 0;
-}
-
-#tacoButton:active {
-  outline: none;
-  border: none;
-}
-
-#tacoButton:focus {
-  border: 10px solid black;
 }
 
 #inputBox {
@@ -84,4 +71,12 @@ button::-moz-focus-inner {
 .column img {
     width: 100%;
     height: auto;
+}
+
+#footer{
+  width: 100%;
+  float: left;
+  text-align: center;
+  font-size: 12px;
+  padding-top: 50px;
 }
