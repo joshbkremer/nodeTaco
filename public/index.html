@@ -60,14 +60,18 @@
             }
 
             if(res.prompt != null && res.prompt != undefined && res.prompt === true){
-              if(!$('#inputDiv').length){
-                $('#rightColumn').append(
-                    '<div id="inputDiv"> <form action="JavaScript:handleLeaderboard()"><input id="inputBox" text="text" size="14"></form><br/><br/></div>'
+              if(!$('#captchaDiv').length){
+                $('#leftColumn').append(
+                  '<div id="captchaDiv">' +
+                    '<img id="captchaId" src="/captcha">' +
+                    '<form action="JavaScript:handleCaptcha()">' +
+                      '<input id="captchaInputBox" text="text" size="14">' +
+                    '</form><br/><br/>' +
+                  '</div>'
                 );
               }
             }
           }
-
       }
 
       $(document).ready(function(){
@@ -109,6 +113,27 @@
           document.getElementById("leaderboard").innerHTML = tableBody;
         }
       }
+
+      function handleCaptcha(){
+        $.ajax({
+          type: 'POST',
+          data: { captcha: $('input[id=captchaInputBox]').val() },
+          url: '/postCaptcha',
+          success: function(res){
+            $("#captchaDiv").remove();
+            $('#rightColumn').append(
+              '<div id="inputDiv">'+
+                '<form action="JavaScript:handleLeaderboard()">' +
+                  '<input id="inputBox" text="text" size="14">' +
+                '</form><br/><br/>' +
+              '</div>'
+            );
+          }
+        });
+
+
+      }
+
       function handleLeaderboard(){
         $.ajax({
           type: 'POST',
@@ -138,7 +163,7 @@
     </script>
 
     <div class="container">
-      <div class="column">
+      <div id="leftColumn" class="column">
       </div>
       <div id="middleColumn" class="column">
         <button id='tacoButton' type="button" onClick="onClick()">

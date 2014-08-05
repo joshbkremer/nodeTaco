@@ -15,7 +15,7 @@ CollectionDriver.prototype.findAll = function(collectionName, callback) {
     this.getCollection(collectionName, function(error, the_collection) { //A
       if( error ) callback(error);
       else {
-        the_collection.find().sort({score:-1}).limit(5).toArray(function(error, results) { //B
+        the_collection.find({isHuman: true}).sort({score:-1}).limit(5).toArray(function(error, results) { //B
           if( error ) callback(error);
           else callback(null, results);
         });

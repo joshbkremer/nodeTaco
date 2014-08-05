@@ -4,6 +4,7 @@ var path = require('path');
 var MongoClient = require('mongodb').MongoClient;
 var Server = require('mongodb').Server;
 var CollectionDriver = require('./collectionDriver').CollectionDriver;
+var captchagen = require('captchagen');
 
 var app = express();
 app.set('port', process.env.PORT || 3000);
@@ -14,32 +15,62 @@ app.use(express.bodyParser());
 
 var collectionDriver;
 
-MongoClient.connect(process.env.MONGOHQ_URL, function(err, db){
-  if (err) {
-      console.error("Error! Exiting... Must start MongoDB first");
-      process.exit(1);
-  }
-
-  collectionDriver = new CollectionDriver(db); //F
-});
-
-//var mongoClient = new MongoClient(new Server('localHost', 27017));
-//mongoClient.open(function(err, mongoClient) { //C
-//  if (!mongoClient) {
+//MongoClient.connect(process.env.MONGOHQ_URL, function(err, db){
+//  if (err) {
 //      console.error("Error! Exiting... Must start MongoDB first");
-//      process.exit(1); //D
+//      process.exit(1);
 //  }
-//  var db = mongoClient.db("tacoDB");  //E
+//
 //  collectionDriver = new CollectionDriver(db); //F
 //});
 
+var mongoClient = new MongoClient(new Server('localHost', 27017));
+mongoClient.open(function(err, mongoClient) { //C
+  if (!mongoClient) {
+      console.error("Error! Exiting... Must start MongoDB first");
+      process.exit(1); //D
+  }
+  var db = mongoClient.db("tacoDB");  //E
+  collectionDriver = new CollectionDriver(db); //F
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/math', function(req, res){
+
+  var captcha = captchagen.create({text: 'mojo'});
+  var gend = captcha.generate();
+
+  res.type('image/png');
+  res.end(captcha.buffer());
+});
+
+app.get('/captcha', function(req, res){
+  var cookieId = req.headers.cookie;
+  var scoreCollection = 'scoreCollection';
+
+  collectionDriver.get(scoreCollection, cookieId, function(error, objs){
+    var randomText = (((1+Math.random())*0x10000000) | 0).toString(32);
+    var myEntry = objs;
+    myEntry.captcha = randomText;
+    myEntry.isHuman = false;
+
+    collectionDriver.update(scoreCollection, cookieId, myEntry, function(merror, obj) { //B
+      var captcha = captchagen.create({text: randomText, width: 200, height: 100});
+      captcha.generate();
+
+      res.type('image/png');
+      res.end(captcha.buffer());
+    });
+  });
+});
+
 
 app.get('/leaderboard', function(req, res){
     collectionDriver.findAll('scoreCollection', function(error, objs){
         var jsonArray = [];
         for(var ww=0; ww < objs.length; ww++){
-            if(objs[ww].name == null | objs[ww].name == undefined)
+            if(objs[ww].name == null || objs[ww].name == undefined)
                 objs[ww].name = 'anonymous';
 
             jsonArray.push({rank: ww+1, name: objs[ww].name, score: objs[ww].score});
@@ -74,7 +105,7 @@ app.post('/increment', function(req, res){
 
   collectionDriver.get(scoreCollection, cookieId, function(error, objs){
     if(objs == null || objs.score == null){
-        collectionDriver.save(scoreCollection, {_id: cookieId, score: 1}, function(err, docs){
+        collectionDriver.save(scoreCollection, {_id: cookieId, score: 1, isHuman: true}, function(err, docs){
             if(err) {res.send(400, err);}
             else {res.send(201, docs);}
         });
@@ -84,26 +115,50 @@ app.post('/increment', function(req, res){
         collectionDriver.update(scoreCollection, cookieId, myEntry, function(merror, obj) { //B
             if (merror) { res.send(400, merror); }
             else {
-                collectionDriver.findAll('scoreCollection', function(error, objs){
-                  var jsonArray = [];
-                    if(error){res.send(200, {leaderboard: jsonArray, score: myEntry.score});}
-                    else {
-                      var prompt = false;
-                      for(var ww=0; ww < objs.length; ww++){
-                        if(objs[ww].name == null || objs[ww].name == undefined)
-                          objs[ww].name = 'anonymous';
+              collectionDriver.findAll('scoreCollection', function(error, objs){
+                var jsonArray = [];
+                  if(error){res.send(200, {leaderboard: jsonArray, score: myEntry.score});}
+                  else {
+                    var prompt = false;
+                    for(var ww=0; ww < objs.length; ww++){
+                      if(objs[ww].name == null || objs[ww].name == undefined)
+                        objs[ww].name = 'anonymous';
 
-                        if(objs[ww]._id === cookieId && objs[ww].name === 'anonymous')
-                            prompt = true;
+                      if(objs[ww]._id === cookieId && objs[ww].name === 'anonymous')
+                          prompt = true;
 
-                        jsonArray.push({rank: ww+1, name: objs[ww].name, score: objs[ww].score});
-                      }
-
-                      res.send(200, {leaderboard: jsonArray, score: myEntry.score, prompt: prompt});
+                      jsonArray.push({rank: ww+1, name: objs[ww].name, score: objs[ww].score});
                     }
-                });
+
+                    res.send(200, {leaderboard: jsonArray, score: myEntry.score, prompt: prompt});
+                  }
+              });
             }
         });
+    }
+  });
+});
+
+app.post('/postCaptcha', function(req, res){
+  var cookieId = req.headers.cookie;
+  var scoreCollection = 'scoreCollection';
+  var captchaText = req.body.captcha;
+
+  collectionDriver.get(scoreCollection, cookieId, function(error, objs){
+    if(error) {res.send(400, err);}
+
+    if(objs != null || objs.captcha != null){
+      if(captchaText === objs.captcha){
+
+        var myEntry = objs;
+        myEntry.isHuman = true;
+
+        collectionDriver.update(scoreCollection, cookieId, myEntry, function(merror, obj) {
+          if (merror) { res.send(400, merror); }
+
+          res.send(200);
+        });
+      }
     }
   });
 });
@@ -114,8 +169,13 @@ app.post('/postName', function(req, res){
 
   collectionDriver.get(scoreCollection, cookieId, function(error, objs){
     if(error) {res.send(400, err);}
+
     var myEntry = objs;
     myEntry.name = req.body.name;
+
+    if(!myEntry.isHuman)
+      res.send(200, {leaderboard: jsonArray});
+
     collectionDriver.update(scoreCollection, cookieId, myEntry, function(merror, obj) { //B
       if (merror) { res.send(400, merror); }
       else {
