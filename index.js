@@ -98,43 +98,53 @@ app.post('/increment', function(req, res){
   var cookieId = req.headers.cookie;
   var scoreCollection = 'scoreCollection';
 
-  var ip = req.headers['x-forwarded-for'] ||
-    req.connection.remoteAddress ||
-    req.socket.remoteAddress ||
-    req.connection.socket.remoteAddress;
-
   collectionDriver.get(scoreCollection, cookieId, function(error, objs){
     if(objs == null || objs.score == null){
-        collectionDriver.save(scoreCollection, {_id: cookieId, score: 1, isHuman: true}, function(err, docs){
-            if(err) {res.send(400, err);}
-            else {res.send(201, docs);}
-        });
+      collectionDriver.save(scoreCollection, {_id: cookieId, score: 1, isHuman: false}, function(err, docs){
+          if(err) {res.send(400, err);}
+          else {res.send(201, docs);}
+      });
     } else {
-        var myEntry = objs;
-        myEntry.score = myEntry.score+1;
-        collectionDriver.update(scoreCollection, cookieId, myEntry, function(merror, obj) { //B
-            if (merror) { res.send(400, merror); }
-            else {
-              collectionDriver.findAll('scoreCollection', function(error, objs){
-                var jsonArray = [];
-                  if(error){res.send(200, {leaderboard: jsonArray, score: myEntry.score});}
-                  else {
-                    var prompt = false;
-                    for(var ww=0; ww < objs.length; ww++){
-                      if(objs[ww].name == null || objs[ww].name == undefined)
-                        objs[ww].name = 'anonymous';
+      var myEntry = objs;
 
-                      if(objs[ww]._id === cookieId && objs[ww].name === 'anonymous')
-                          prompt = true;
+      myEntry.score = myEntry.score+1;
+      if((myEntry.score % (100 + Math.floor((Math.random() * 100) + 1))) === 0){
+        var randomText = (((1+Math.random())*0x10000000) | 0).toString(32);
+        myEntry.captcha = randomText;
+        myEntry.isHuman = false;
+      }
 
-                      jsonArray.push({rank: ww+1, name: objs[ww].name, score: objs[ww].score});
-                    }
+      collectionDriver.update(scoreCollection, cookieId, myEntry, function(merror, obj) { //B
+          if (merror) { res.send(400, merror); }
+          else {
+            collectionDriver.findAll('scoreCollection', function(error, objs){
+                if(error ){
+                  res.send(200, {leaderboard: jsonArray, score: myEntry.score});
+                } else if(objs.length < 10 && !myEntry.isHuman && !myEntry.name){
+                  res.send(200, {leaderboard: jsonArray, score: myEntry.score, captchaPrompt: true});
+                } else if(objs.length < 10 && myEntry.isHuman && !myEntry.name){
+                  res.send(200, {leaderboard: jsonArray, score: myEntry.score, namePrompt: true});
+                } else {
 
-                    res.send(200, {leaderboard: jsonArray, score: myEntry.score, prompt: prompt});
+                  var captchaPrompt = false;
+                  var namePrompt = false;
+                  if(!myEntry.isHuman && (objs[objs.length-1].score < myEntry.score)){
+                    captchaPrompt = true;
+                  } else if(myEntry.isHuman && (objs[objs.length-1].score < myEntry.score) && !myEntry.name){
+                    namePrompt = true;
                   }
-              });
-            }
-        });
+
+                  var jsonArray = [];
+                  for(var ww=0; ww < objs.length; ww++){
+                    if(objs[ww].name != null || objs[ww].name != undefined)
+                      jsonArray.push({rank: ww+1, name: objs[ww].name, score: objs[ww].score});
+                  }
+
+                  res.send(200, {leaderboard: jsonArray, score: myEntry.score, captchaPrompt: captchaPrompt, namePrompt: namePrompt});
+                }
+            });
+          }
+      });
     }
   });
 });
@@ -155,8 +165,10 @@ app.post('/postCaptcha', function(req, res){
 
         collectionDriver.update(scoreCollection, cookieId, myEntry, function(merror, obj) {
           if (merror) { res.send(400, merror); }
+          if(obj.name)
+            res.send(200, {namePrompt: false});
 
-          res.send(200);
+          res.send(200, {namePrompt: true});
         });
       }
     }

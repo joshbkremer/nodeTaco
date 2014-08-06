@@ -59,13 +59,25 @@
             document.getElementById("leaderboard").innerHTML = tableBody;
             }
 
-            if(res.prompt != null && res.prompt != undefined && res.prompt === true){
+            if(res.captchaPrompt){
               if(!$('#captchaDiv').length){
                 $('#leftColumn').append(
                   '<div id="captchaDiv">' +
-                    '<img id="captchaId" src="/captcha">' +
+                    '<img id="captchaId" src="/captcha?' + new Date().getTime() + '">' +
                     '<form action="JavaScript:handleCaptcha()">' +
                       '<input id="captchaInputBox" text="text" size="14">' +
+                    '</form><br/><br/>' +
+                  '</div>'
+                );
+              }
+            }
+
+            if(res.namePrompt){
+              if(!$('#inputDiv').length){
+                $('#rightColumn').append(
+                  '<div id="inputDiv">'+
+                    '<form action="JavaScript:handleLeaderboard()">' +
+                      '<input id="inputBox" text="text" size="14">' +
                     '</form><br/><br/>' +
                   '</div>'
                 );
@@ -121,13 +133,18 @@
           url: '/postCaptcha',
           success: function(res){
             $("#captchaDiv").remove();
-            $('#rightColumn').append(
-              '<div id="inputDiv">'+
-                '<form action="JavaScript:handleLeaderboard()">' +
-                  '<input id="inputBox" text="text" size="14">' +
-                '</form><br/><br/>' +
-              '</div>'
-            );
+            if(!res.namePrompt)
+              return;
+
+            if(!$('#inputDiv').length){
+              $('#rightColumn').append(
+                '<div id="inputDiv">'+
+                  '<form action="JavaScript:handleLeaderboard()">' +
+                    '<input id="inputBox" text="text" size="14">' +
+                  '</form><br/><br/>' +
+                '</div>'
+              );
+            }
           }
         });
 

@@ -15,7 +15,7 @@ CollectionDriver.prototype.findAll = function(collectionName, callback) {
     this.getCollection(collectionName, function(error, the_collection) { //A
       if( error ) callback(error);
       else {
-        the_collection.find({isHuman: true}).sort({score:-1}).limit(5).toArray(function(error, results) { //B
+        the_collection.find({isHuman: true, name: {$exists: true}}).sort({score:-1}).limit(10).toArray(function(error, results) { //B
           if( error ) callback(error);
           else callback(null, results);
         });
@@ -56,7 +56,7 @@ CollectionDriver.prototype.update = function(collectionName, myEntry, obj, callb
             myEntry.updated_at = new Date(); //B
             the_collection.save(obj, function(error, doc) { //C
                 if (error) callback(error);
-                else callback(null, myEntry);
+                else callback(null, obj);
             });
         }
     });
