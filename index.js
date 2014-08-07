@@ -107,12 +107,14 @@ app.post('/increment', function(req, res){
     } else {
       var myEntry = objs;
 
-      myEntry.score = myEntry.score+1;
       if((myEntry.score % (100 + Math.floor((Math.random() * 100) + 1))) === 0){
         var randomText = (((1+Math.random())*0x10000000) | 0).toString(32);
         myEntry.captcha = randomText;
         myEntry.isHuman = false;
       }
+
+      if(myEntry.isHuman)
+        myEntry.score = myEntry.score+1;
 
       collectionDriver.update(scoreCollection, cookieId, myEntry, function(merror, obj) { //B
           if (merror) { res.send(400, merror); }
@@ -184,9 +186,6 @@ app.post('/postName', function(req, res){
 
     var myEntry = objs;
     myEntry.name = req.body.name;
-
-    if(!myEntry.isHuman)
-      res.send(200, {leaderboard: jsonArray});
 
     collectionDriver.update(scoreCollection, cookieId, myEntry, function(merror, obj) { //B
       if (merror) { res.send(400, merror); }
