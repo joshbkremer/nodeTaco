@@ -100,21 +100,22 @@ app.post('/increment', function(req, res){
 
   collectionDriver.get(scoreCollection, cookieId, function(error, objs){
     if(objs == null || objs.score == null){
-      collectionDriver.save(scoreCollection, {_id: cookieId, score: 1, isHuman: false}, function(err, docs){
+      collectionDriver.save(scoreCollection, {_id: cookieId, score: 1, isHuman: false, isNew: true}, function(err, docs){
           if(err) {res.send(400, err);}
           else {res.send(201, docs);}
       });
     } else {
       var myEntry = objs;
+      
+      if(myEntry.isHuman || myEntry.isNew)
+        myEntry.score = myEntry.score+1;
 
       if((myEntry.score % (100 + Math.floor((Math.random() * 100) + 1))) === 0){
         var randomText = (((1+Math.random())*0x10000000) | 0).toString(32);
         myEntry.captcha = randomText;
         myEntry.isHuman = false;
+        myEntry.isNew = false;
       }
-
-      if(myEntry.isHuman)
-        myEntry.score = myEntry.score+1;
 
       collectionDriver.update(scoreCollection, cookieId, myEntry, function(merror, obj) { //B
           if (merror) { res.send(400, merror); }
