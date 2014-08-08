@@ -131,7 +131,7 @@ app.post('/increment', function(req, res){
 
                   var captchaPrompt = false;
                   var namePrompt = false;
-                  if(!myEntry.isHuman && (objs[objs.length-1].score < myEntry.score)){
+                  if(!myEntry.isHuman){
                     captchaPrompt = true;
                   } else if(myEntry.isHuman && (objs[objs.length-1].score < myEntry.score) && !myEntry.name){
                     namePrompt = true;
