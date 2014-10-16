@@ -17,7 +17,9 @@
   </script>
     <script type="text/javascript">
       var clicks = 0;
+      var weeklyClicks = 0;
       var rotating = [];
+
       function onClick(){
         var $tacoImage = $('.tacoImage');
         rotating.push(setInterval(function(){
@@ -40,6 +42,8 @@
 
         function handleSuccess(res){
           clicks = res.score;
+          weeklyClicks = res.weeklyScore;
+          document.getElementById("weeklyClicks").innerHTML = weeklyClicks;
           document.getElementById("clicks").innerHTML = clicks;
 
           if(res.leaderboard != null && res.leaderboard != undefined){
@@ -57,11 +61,28 @@
               tableBody += "<tr>"+tableRow+"</tr>";
             })
             document.getElementById("leaderboard").innerHTML = tableBody;
-            }
+          }
+
+          if(res.weeklyLeaderboard != null && res.weeklyLeaderboard != undefined){
+            var tableBody = "";
+            $.each(res.weeklyLeaderboard, function() {
+              var tableRow = "";
+              $.each(this, function(k , v) {
+                if(k === 'weeklyScore')
+                  tableRow += "<td>"+v+" tacos </td>";
+                else if(k == 'rank')
+                  tableRow += "<td>"+v+". </td>";
+                else
+                  tableRow += "<td> "+v+" </td>";
+              })
+              tableBody += "<tr>"+tableRow+"</tr>";
+            })
+            document.getElementById("weeklyLeaderboard").innerHTML = tableBody;
+          }
 
             if(res.captchaPrompt){
               if(!$('#captchaDiv').length){
-                $('#leftColumn').append(
+                $('#middleColumn').append(
                   '<div id="captchaDiv">' +
                     '<img id="captchaId" src="/captcha?' + new Date().getTime() + '">' +
                     '<form action="JavaScript:handleCaptcha()">' +
@@ -74,7 +95,7 @@
 
             if(res.namePrompt){
               if(!$('#inputDiv').length){
-                $('#rightColumn').append(
+                $('#leftColumn').append(
                   '<div id="inputDiv">'+
                     '<form action="JavaScript:handleLeaderboard()">' +
                       '<input id="inputBox" text="text" size="14">' +
@@ -95,6 +116,8 @@
 
         function handleUserScore(res){
           clicks = res.score;
+          weeklyClicks = res.weeklyScore;
+          document.getElementById("weeklyClicks").innerHTML = weeklyClicks;
           document.getElementById("clicks").innerHTML = clicks;
         }
 
@@ -123,6 +146,23 @@
             tableBody += "<tr>"+tableRow+"</tr>";
           })
           document.getElementById("leaderboard").innerHTML = tableBody;
+
+          if(res.weeklyLeaderboard != null && res.weeklyLeaderboard != undefined){
+            var tableBody = "";
+            $.each(res.weeklyLeaderboard, function() {
+              var tableRow = "";
+              $.each(this, function(k , v) {
+                if(k === 'weeklyScore')
+                  tableRow += "<td>"+v+" tacos </td>";
+                else if(k == 'rank')
+                  tableRow += "<td>"+v+". </td>";
+                else
+                  tableRow += "<td> "+v+" </td>";
+              })
+              tableBody += "<tr>"+tableRow+"</tr>";
+            })
+            document.getElementById("weeklyLeaderboard").innerHTML = tableBody;
+          }
         }
       }
 
@@ -137,7 +177,7 @@
               return;
 
             if(!$('#inputDiv').length){
-              $('#rightColumn').append(
+              $('#leftColumn').append(
                 '<div id="inputDiv">'+
                   '<form action="JavaScript:handleLeaderboard()">' +
                     '<input id="inputBox" text="text" size="14">' +
@@ -174,6 +214,23 @@
               })
               document.getElementById("leaderboard").innerHTML = tableBody;
             }
+
+            if(res.weeklyLeaderboard != null && res.weeklyLeaderboard != undefined){
+              var tableBody = "";
+              $.each(res.weeklyLeaderboard, function() {
+                var tableRow = "";
+                $.each(this, function(k , v) {
+                  if(k === 'weeklyScore')
+                    tableRow += "<td>"+v+" tacos </td>";
+                  else if(k == 'rank')
+                    tableRow += "<td>"+v+". </td>";
+                  else
+                    tableRow += "<td> "+v+" </td>";
+                })
+                tableBody += "<tr>"+tableRow+"</tr>";
+              })
+              document.getElementById("weeklyLeaderboard").innerHTML = tableBody;
+            }
           }
         });
       }
@@ -181,13 +238,19 @@
 
     <div class="container">
       <div id="leftColumn" class="column">
+        <h1>Weekly Leaderboard</h1>
+          <table id="weeklyLeaderboard">
+          </table>
       </div>
       <div id="middleColumn" class="column">
         <button id='tacoButton' type="button" onClick="onClick()">
           <img class="tacoImage" src="taco.png">
         </button>
         <div style="margin-top: 50px">
-          <p style="font-family: 'tacoFont'; color: #FF007E; font-size: 24px;"> Total number of chalupas:
+          <p style="font-family: 'tacoFont'; color: #FF007E; font-size: 24px;"> Weekly Tacos:
+            <a id="weeklyClicks" style="font-family: 'tacoFont'; color: #FFFF01; font-size: 24px;">0</a>
+          </p>
+          <p style="font-family: 'tacoFont'; color: #FF007E; font-size: 24px;"> Total number of Tacos:
             <a id="clicks" style="font-family: 'tacoFont'; color: #FFFF01; font-size: 24px;">0</a>
           </p>
         </div>

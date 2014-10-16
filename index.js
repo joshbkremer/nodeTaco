@@ -76,7 +76,16 @@ app.get('/leaderboard', function(req, res){
             jsonArray.push({rank: ww+1, name: objs[ww].name, score: objs[ww].score});
         }
 
-        res.send(200, {leaderboard: jsonArray});
+      // any entry with date less then next sunday;
+      //and more then last sunday
+        collectionDriver.findAllWeekly('scoreCollection', function(weeklyError, weeklyObjs){
+            var weeklyJsonArray = [];
+            for(var cc=0; cc < weeklyObjs.length; cc++){
+              if(weeklyObjs[cc].name != null || weeklyObjs[cc].name != undefined)
+                weeklyJsonArray.push({rank: cc+1, name: weeklyObjs[cc].name, weeklyScore: weeklyObjs[cc].weeklyScore});
+            }
+            res.send(200, {leaderboard: jsonArray, weeklyLeaderboard: weeklyJsonArray});
+        });
     });
 });
 
@@ -87,9 +96,9 @@ app.get('/userScore', function(req, res){
     collectionDriver.get(scoreCollection, cookieId, function(error, objs){
         var score = 0;
         if(objs == null || objs.score == null){
-            res.send(200, {score: 0});
+            res.send(200, {score: 0, weeklyScore: 0});
         } else{
-            res.send(200, {score: objs.score});
+            res.send(200, {score: objs.score, weeklyScore: objs.weeklyScore});
         }
     });
 });
@@ -99,8 +108,15 @@ app.post('/increment', function(req, res){
   var scoreCollection = 'scoreCollection';
 
   collectionDriver.get(scoreCollection, cookieId, function(error, objs){
+    var currDate = new Date;
+    currDate = new Date(currDate.getFullYear(), currDate.getMonth(), currDate.getDate(), 1, 10);
+    var firstDate = currDate.getDate() - currDate.getDay();
+    var lastDate = firstDate + 6;
+    var firstTime = new Date(currDate.setDate(firstDate)).getTime();
+    var lastTime = new Date(currDate.setDate(lastDate)).getTime();
+
     if(objs == null || objs.score == null){
-      collectionDriver.save(scoreCollection, {_id: cookieId, score: 1, isHuman: false, isNew: true}, function(err, docs){
+      collectionDriver.save(scoreCollection, {_id: cookieId, score: 1, weeklyScore: 1, weeklyDate: firstTime, isHuman: false, isNew: true}, function(err, docs){
           if(err) {res.send(400, err);}
           else {res.send(201, docs);}
       });
@@ -117,16 +133,26 @@ app.post('/increment', function(req, res){
         myEntry.isNew = false;
       }
 
+      if(myEntry.weeklyDate === undefined){
+        myEntry.weeklyDate = firstTime;
+        myEntry.weeklyScore = 1;
+      } else if(myEntry.weeklyDate >= firstTime && myEntry.weeklyDate <= lastTime){
+        myEntry.weeklyScore = myEntry.weeklyScore+1;
+      } else {
+        myEntry.weeklyDate = firstTime;
+        myEntry.weeklyScore = 1;
+      }
+
       collectionDriver.update(scoreCollection, cookieId, myEntry, function(merror, obj) { //B
           if (merror) { res.send(400, merror); }
           else {
             collectionDriver.findAll('scoreCollection', function(error, objs){
                 if(error ){
-                  res.send(200, {leaderboard: jsonArray, score: myEntry.score});
+                  res.send(200, {leaderboard: jsonArray, score: myEntry.score, weeklyScore: myEntry.weeklyScore});
                 } else if(objs.length < 10 && !myEntry.isHuman && !myEntry.name){
-                  res.send(200, {leaderboard: jsonArray, score: myEntry.score, captchaPrompt: true});
+                  res.send(200, {leaderboard: jsonArray, score: myEntry.score, weeklyScore: myEntry.weeklyScore, captchaPrompt: true});
                 } else if(objs.length < 10 && myEntry.isHuman && !myEntry.name){
-                  res.send(200, {leaderboard: jsonArray, score: myEntry.score, namePrompt: true});
+                  res.send(200, {leaderboard: jsonArray, score: myEntry.score, weeklyScore: myEntry.weeklyScore, namePrompt: true});
                 } else {
 
                   var captchaPrompt = false;
@@ -143,7 +169,24 @@ app.post('/increment', function(req, res){
                       jsonArray.push({rank: ww+1, name: objs[ww].name, score: objs[ww].score});
                   }
 
-                  res.send(200, {leaderboard: jsonArray, score: myEntry.score, captchaPrompt: captchaPrompt, namePrompt: namePrompt});
+                  collectionDriver.findAllWeekly('scoreCollection', function(weeklyError, weeklyObjs){
+                    if(weeklyError ){
+                      res.send(200, {leaderboard: jsonArray, weeklyLeaderboard: weeklyJsonArray, score: myEntry.score, weeklyScore: myEntry.weeklyScore});
+                    } else if(weeklyObjs.length < 10 && !myEntry.isHuman && !myEntry.name){
+                      res.send(200, {leaderboard: jsonArray, weeklyLeaderboard: weeklyJsonArray, score: myEntry.score, weeklyScore: myEntry.weeklyScore, captchaPrompt: true});
+                    } else if(weeklyObjs.length < 10 && myEntry.isHuman && !myEntry.name){
+                      res.send(200, {leaderboard: jsonArray, weeklyLeaderboard: weeklyJsonArray, score: myEntry.score, weeklyScore: myEntry.weeklyScore, namePrompt: true});
+                    } else {
+
+
+                      var weeklyJsonArray = [];
+                      for(var cc=0; cc < weeklyObjs.length; cc++){
+                        if(weeklyObjs[cc].name != null || weeklyObjs[cc].name != undefined)
+                          weeklyJsonArray.push({rank: cc+1, name: weeklyObjs[cc].name, weeklyScore: weeklyObjs[cc].weeklyScore});
+                      }
+                      res.send(200, {leaderboard: jsonArray, weeklyLeaderboard: weeklyJsonArray, score: myEntry.score, weeklyScore: myEntry.weeklyScore, captchaPrompt: captchaPrompt, namePrompt: namePrompt});
+                    }
+                  });
                 }
             });
           }
@@ -194,13 +237,20 @@ app.post('/postName', function(req, res){
         collectionDriver.findAll('scoreCollection', function(error, objs){
           var jsonArray = [];
           for(var ww=0; ww < objs.length; ww++){
-              if(objs[ww].name == null | objs[ww].name == undefined)
-                  objs[ww].name = 'anonymous';
+            if(objs[ww].name == null | objs[ww].name == undefined)
+                objs[ww].name = 'anonymous';
 
-              jsonArray.push({rank: ww+1, name: objs[ww].name, score: objs[ww].score});
+            jsonArray.push({rank: ww+1, name: objs[ww].name, score: objs[ww].score});
           }
 
-          res.send(200, {leaderboard: jsonArray});
+          collectionDriver.findAllWeekly('scoreCollection', function(weeklyError, weeklyObjs){
+            var weeklyJsonArray = [];
+            for(var cc=0; cc < weeklyObjs.length; cc++){
+              if(weeklyObjs[cc].name != null || weeklyObjs[cc].name != undefined)
+                weeklyJsonArray.push({rank: cc+1, name: weeklyObjs[cc].name, weeklyScore: weeklyObjs[cc].weeklyScore});
+            }
+            res.send(200, {leaderboard: jsonArray, weeklyLeaderboard: weeklyJsonArray});
+          });
         });
       }
     });
