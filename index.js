@@ -95,10 +95,14 @@ app.get('/userScore', function(req, res){
 
     collectionDriver.get(scoreCollection, cookieId, function(error, objs){
         var score = 0;
-        if(objs == null || objs.score == null){
+        if(objs == null || (objs.score == null && objs.weeklyScore == null)){
             res.send(200, {score: 0, weeklyScore: 0});
+        } else if( objs.score == null && objs.weeklyScore != null){
+          res.send(200, {score: 0, weeklyScore: objs.weeklyScore});
+        } else if(objs.score != null && objs.weeklyScore == null){
+          res.send(200, {score: objs.score, weeklyScore: 0});
         } else{
-            res.send(200, {score: objs.score, weeklyScore: objs.weeklyScore});
+          res.send(200, {score: objs.score, weeklyScore: objs.weeklyScore});
         }
     });
 });
